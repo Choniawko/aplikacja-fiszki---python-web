@@ -33,3 +33,14 @@ npm run dev
 
 Wymagany jest Node.js 24 lub nowszy. [Instrukcja wersji webowej](web/README.md)
 opisuje import folderów, lokalny zapis w IndexedDB, testy oraz budowanie na hosting statyczny.
+
+**Telefon:** wersja PWA jest przygotowana na GitHub Pages pod adresem
+`https://choniawko.github.io/aplikacja-fiszki---python-web/` po włączeniu Pages
+i uruchomieniu workflow. Na iPhonie otwórz ją w Safari i wybierz
+**Udostępnij → Do ekranu głównego**. Poczekaj na „Gotowe do nauki offline”.
+
+**Komputer bez instalacji:** rozpakuj [fiszki-offline.zip](web/fiszki-offline.zip)
+i otwórz `fiszki.html` w przeglądarce. Podgląd HTML w aplikacji Pliki na iPhonie
+nie zastępuje wersji PWA.
+
+[Publikacja GitHub Pages, instalacja i wszystkie tryby uruchomienia](web/README.md).

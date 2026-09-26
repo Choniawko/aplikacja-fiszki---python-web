@@ -188,15 +188,16 @@ test('uszkodzony import nie nadpisuje wcześniej zapisanej lekcji', async ({ pag
   await expect(page.getByTestId('counter')).toHaveText('1 / 3');
 });
 
-test('niedostępny IndexedDB nie blokuje oryginalnych lekcji i zgłasza błąd zapisu', async ({ page, lessonFolder }) => {
+test('niedostępny IndexedDB zachowuje import w bieżącej sesji', async ({ page, lessonFolder }) => {
   await page.addInitScript(() => Object.defineProperty(window, 'indexedDB', { value: undefined }));
   await page.goto('./');
   await expect(page.getByRole('alert')).toContainText('IndexedDB');
   await importFolder(page, lessonFolder);
-  await expect(page.getByRole('status')).toContainText('Nie udało się odczytać lub zapisać');
-  await expect(page.getByRole('radio')).toHaveCount(2);
+  await expect(page.getByRole('status')).toContainText('Dostępne tylko w bieżącej sesji');
+  await expect(page.getByRole('status')).not.toContainText('Zapisano lokalnie');
+  await expect(page.getByRole('radio')).toHaveCount(3);
   await page.getByRole('button', { name: 'Rozpocznij lekcję' }).click();
-  await expect(page.getByTestId('counter')).toHaveText('1 / 134');
+  await expect(page.getByTestId('counter')).toHaveText('1 / 3');
 });
 
 test('nieobsługiwany wybór folderu i błąd grafiki nie pozwalają na ocenę', async ({ page }) => {

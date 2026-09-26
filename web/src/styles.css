@@ -13,6 +13,8 @@ button, input { font: inherit; }
 button { color: inherit; }
 button:not(:disabled) { cursor: pointer; }
 button {
+  min-height: 44px;
+  touch-action: manipulation;
   background: #fafafa;
   border: 1px solid #a5a5a5;
   border-radius: 4px;
@@ -24,7 +26,7 @@ button:disabled { cursor: default; opacity: 0.45; }
 :focus-visible { outline: 3px solid #145db5; outline-offset: 4px; }
 
 #root { min-height: 100svh; display: grid; place-items: center; }
-.app { width: min(800px, 100%); min-height: 650px; text-align: center; padding: 28px 24px; }
+.app { width: min(800px, 100%); min-height: 650px; text-align: center; padding: max(28px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); }
 h1, p { margin: 0; }
 .menu { max-width: 520px; margin: 0 auto; }
 .menu h1 { font-size: 44px; line-height: 1.2; margin: 0 0 27px; }
@@ -84,10 +86,17 @@ h1, p { margin: 0; }
 .back-button { font-size: 14px; margin-top: 22px; }
 .completion-mark { color: #168229; font-size: 134px; }
 .completion-message { font-size: 26px; }
+.pwa-panel { max-width: 540px; margin: 24px auto 0; padding-top: 16px; border-top: 1px solid #ccc; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.pwa-panel [data-testid="offline-state"] { font-weight: bold; }
+.pwa-panel [role="alert"] { color: #9b2424; margin-top: 10px; }
+.pwa-panel button { margin: 8px 4px 0; font-size: 14px; }
+.install-instructions { margin-top: 12px; color: #4b4b4b; }
+.install-instructions p + p { margin-top: 6px; }
+.update-notice { margin-top: 12px; padding: 12px; border: 1px solid #9db2cb; background: #e3edf8; border-radius: 4px; }
 
 @media (max-width: 600px) {
   #root { place-items: start center; }
-  .app { padding: 24px 16px; min-height: 100svh; }
+  .app { padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); min-height: 100svh; }
   .menu h1 { font-size: 40px; margin-bottom: 24px; }
   .lesson-option { font-size: 17px; padding: 12px 9px; }
   .study h1 { font-size: 22px; }

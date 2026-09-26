@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { IDBFactory, IDBObjectStore } from 'fake-indexeddb';
-import { loadImportedLessons, saveImportedLesson } from '../src/data/storage.ts';
+import { loadImportedLessons, probeImportedStorage, saveImportedLesson, saveImportedLessons } from '../src/data/storage.ts';
 import type { StoredLesson } from '../src/data/import-lessons.ts';
 
 function lesson(name = 'Moja lekcja'): StoredLesson {
@@ -61,4 +61,27 @@ test('zapis zakończony abortem transakcji nie zgłasza sukcesu', async (context
   await assert.rejects(saveImportedLesson({ ...lesson(), name: 'Zmiana' }, factory), /lokalnych lekcji/);
   mock.mock.restore();
   assert.equal((await loadImportedLessons(factory))[0]!.name, 'Moja lekcja');
+});
+
+test('próba zapisu nie zostawia danych i wykrywa odmowę zapisu', async (context) => {
+  const factory = new IDBFactory();
+  await probeImportedStorage(factory);
+  assert.deepEqual(await loadImportedLessons(factory), []);
+  const mock = context.mock.method(IDBObjectStore.prototype, 'put', () => { throw new DOMException('denied', 'QuotaExceededError'); });
+  await assert.rejects(probeImportedStorage(factory), /Brakuje miejsca/);
+  mock.mock.restore();
+});
+
+test('błąd drugiego zapisu kopii wycofuje także pierwszy zapis', async (context) => {
+  const factory = new IDBFactory();
+  await saveImportedLesson(lesson(), factory);
+  const originalPut = IDBObjectStore.prototype.put;
+  let writes = 0;
+  const mock = context.mock.method(IDBObjectStore.prototype, 'put', function (this: IDBObjectStore, value: unknown) {
+    if (++writes === 2) throw new DOMException('full', 'QuotaExceededError');
+    return originalPut.call(this, value);
+  });
+  await assert.rejects(saveImportedLessons([lesson('Nowa 1'), lesson('Nowa 2')], factory), /Brakuje miejsca/);
+  mock.mock.restore();
+  assert.deepEqual((await loadImportedLessons(factory)).map((record) => record.name), ['Moja lekcja']);
 });

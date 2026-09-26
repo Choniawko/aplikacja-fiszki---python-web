@@ -1,6 +1,8 @@
 node_modules/
 dist/
 dist-offline/
+dist-pwa/
+test-results-pwa/
 test-results-offline/
 public/generated/
 test-results/

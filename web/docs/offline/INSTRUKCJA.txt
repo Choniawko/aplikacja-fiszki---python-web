@@ -1,5 +1,12 @@
 FISZKI — WERSJA PRZENOŚNA OFFLINE
 
+Ta paczka jest przeznaczona do przeglądarki na komputerze.
+Na iPhonie nie otwieraj HTML w podglądzie aplikacji Pliki.
+Wersja na telefon (po publikacji GitHub Pages):
+https://choniawko.github.io/aplikacja-fiszki---python-web/
+W Safari: Udostępnij → Do ekranu głównego. Poczekaj na komunikat
+„Gotowe do nauki offline” przed odłączeniem internetu.
+
 1. Rozpakuj cały plik fiszki-offline.zip.
 2. Otwórz fiszki.html dwuklikiem. Jeśli otworzy się edytor tekstu,
    wybierz „Otwórz za pomocą” i przeglądarkę internetową.
@@ -35,3 +42,7 @@ albo tryb prywatny mogą spowodować brak poprzednich lokalnych importów.
 Dlatego plik kopii zapasowej jest sposobem przenoszenia i zachowania lekcji.
 
 Klawiatura: Tab / Shift+Tab, strzałki na liście, Enter / Spacja na przyciskach.
+
+Weryfikacja komputerowa: Google Chrome 150.0.7871.125 na macOS 12.7.6,
+bezpośredni adres file:// i wyłączona sieć. Nie sprawdzano Safari ani Firefox.
+Instrukcja i lista ręcznych testów na prawdziwym telefonie są w repozytorium.

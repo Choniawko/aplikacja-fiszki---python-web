@@ -10,6 +10,7 @@ import { sortLessons } from './domain/lessons.ts';
 import type { Lesson } from './domain/lessons.ts';
 import { sessionReducer } from './domain/session.ts';
 import type { Session, SessionAction } from './domain/session.ts';
+import { PwaPanel } from './pwa/PwaPanel.tsx';
 
 const reduceSession = (state: Session | null, action: SessionAction) => sessionReducer(state, action);
 
@@ -166,6 +167,7 @@ export default function App() {
           onExport={() => { void exportLessons(); }}
         />
       )}
+      {import.meta.env.MODE === 'pwa' && <PwaPanel studying={session?.status === 'learning'} />}
     </main>
   );
 }
