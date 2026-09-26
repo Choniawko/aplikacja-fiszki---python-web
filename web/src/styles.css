@@ -55,6 +55,8 @@ h1, p { margin: 0; }
 .empty-list { color: #555; padding: 15px 12px; font-size: 16px; }
 .start-button { display: block; margin: 20px auto 10px; font-size: 19px; }
 .import-button { font-size: 15px; padding: 9px 16px; }
+.backup-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+.backup-buttons button { font-size: 14px; padding: 9px 12px; }
 .menu-status { font-size: 14px; line-height: 1.5; margin-top: 16px; }
 .menu-status p { margin-top: 8px; overflow-wrap: anywhere; }
 .local-note { margin-top: 10px; color: #626262; font-size: 12px; line-height: 1.5; }

@@ -1,5 +1,7 @@
 node_modules/
 dist/
+dist-offline/
+test-results-offline/
 public/generated/
 test-results/
 playwright-report/

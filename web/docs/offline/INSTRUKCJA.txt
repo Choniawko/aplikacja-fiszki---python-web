@@ -1,0 +1,37 @@
+FISZKI — WERSJA PRZENOŚNA OFFLINE
+
+1. Rozpakuj cały plik fiszki-offline.zip.
+2. Otwórz fiszki.html dwuklikiem. Jeśli otworzy się edytor tekstu,
+   wybierz „Otwórz za pomocą” i przeglądarkę internetową.
+3. Wybierz lekcję, kliknij „Rozpocznij lekcję”, a następnie grafikę.
+4. Czerwone ✗ oznacza błąd, zielone ✓ — poprawną odpowiedź.
+   Błędne karty powtarzają się do zaliczenia wszystkich odpowiedzi.
+
+Nie potrzebujesz internetu, instalacji, Node.js, Pythona, terminala
+ani serwera. Wszystkie wbudowane lekcje i obrazy są w fiszki.html.
+
+WŁASNE LEKCJE I KOPIE ZAPASOWE
+
+„Importuj folder lekcji” pozwala wybrać folder z własnymi obrazami.
+Nazwa folderu to nazwa lekcji; nazwy plików bez końcowego rozszerzenia
+są odpowiedziami. Obrazy umieść bezpośrednio w wybranym folderze.
+Aplikacja nie skanuje folderów obok HTML i nie zmienia samego HTML.
+
+Przeglądarka może zapisać importowane lekcje lokalnie. W trybie file://
+może też odmówić zapisu. Wówczas lekcje działają do zamknięcia lub
+odświeżenia strony, o czym informuje aplikacja.
+
+Przycisk „Eksportuj kopię lekcji” pobiera jeden plik JSON ze wszystkimi
+własnymi lekcjami, odpowiedziami i grafikami — także tymi dostępnymi
+tylko w bieżącej sesji. Zachowaj ten plik przed zamknięciem strony.
+
+Na innym komputerze otwórz fiszki.html i wybierz „Importuj kopię lekcji”,
+a następnie wskaż zapisany JSON. Internet i dostęp do starych folderów
+nie są potrzebne. Kopia zastępuje własne lekcje o tych samych nazwach.
+Pozostałe lekcje i materiały wbudowane pozostają dostępne.
+
+Zmiana lokalizacji lub nazwy HTML, inna przeglądarka, czyszczenie danych
+albo tryb prywatny mogą spowodować brak poprzednich lokalnych importów.
+Dlatego plik kopii zapasowej jest sposobem przenoszenia i zachowania lekcji.
+
+Klawiatura: Tab / Shift+Tab, strzałki na liście, Enter / Spacja na przyciskach.

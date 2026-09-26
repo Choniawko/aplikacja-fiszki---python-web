@@ -8,6 +8,7 @@ export interface Lesson {
   id: string;
   name: string;
   source: 'bundled' | 'imported';
+  temporary?: boolean;
   cards: Card[];
 }
 

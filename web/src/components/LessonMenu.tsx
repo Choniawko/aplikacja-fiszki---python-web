@@ -9,18 +9,23 @@ interface Props {
   importing: boolean;
   message: string;
   errors: string[];
+  hasImports: boolean;
+  hasTemporaryImports: boolean;
   onSelect: (id: string) => void;
   onStart: () => void;
   onImport: (files: File[]) => void;
+  onImportBackup: (file: File) => void;
+  onExport: () => void;
 }
 
-export function LessonMenu({ lessons, selectedId, loading, importing, message, errors, onSelect, onStart, onImport }: Props) {
+export function LessonMenu({ lessons, selectedId, loading, importing, message, errors, hasImports, hasTemporaryImports, onSelect, onStart, onImport, onImportBackup, onExport }: Props) {
   const picker = useRef<HTMLInputElement>(null);
+  const backupPicker = useRef<HTMLInputElement>(null);
   const [pickerError, setPickerError] = useState('');
 
   function chooseFolder() {
     if (!supportsDirectoryPicker()) {
-      setPickerError('Ta przeglądarka nie obsługuje wyboru folderu. Otwórz aplikację w aktualnej przeglądarce z obsługą folderów. Wbudowane lekcje są nadal dostępne.');
+      setPickerError('Ta przeglądarka nie obsługuje wyboru folderu. Możesz wczytać plik przez „Importuj kopię lekcji” lub korzystać z wbudowanych lekcji.');
       return;
     }
     setPickerError('');
@@ -46,7 +51,7 @@ export function LessonMenu({ lessons, selectedId, loading, importing, message, e
               onChange={() => onSelect(lesson.id)}
               disabled={loading || importing}
             />
-            <span>{lesson.name}{lesson.source === 'imported' && <small> (import)</small>}</span>
+            <span>{lesson.name}{lesson.source === 'imported' && <small> (import{lesson.temporary ? ', tylko ta sesja' : ''})</small>}</span>
           </label>
         ))}
         {!lessons.length && <p className="empty-list">{loading ? 'Wczytywanie lekcji…' : 'Nie znaleziono żadnych lekcji.'}</p>}
@@ -63,6 +68,16 @@ export function LessonMenu({ lessons, selectedId, loading, importing, message, e
         hidden
         onChange={(event) => onImport(Array.from(event.currentTarget.files ?? []))}
       />
+      <div className="backup-buttons">
+        <button type="button" disabled={loading || importing || !hasImports} onClick={onExport}>Eksportuj kopię lekcji</button>
+        <button type="button" disabled={loading || importing} onClick={() => {
+          if (backupPicker.current) { backupPicker.current.value = ''; backupPicker.current.click(); }
+        }}>Importuj kopię lekcji</button>
+      </div>
+      <input ref={backupPicker} data-testid="backup-input" type="file" accept=".json,application/json" hidden onChange={(event) => {
+        const file = event.currentTarget.files?.[0];
+        if (file) onImportBackup(file);
+      }} />
       <div className="menu-status" role="status">
         {loading ? 'Wczytywanie lekcji…' : `Znaleziono lekcji: ${lessons.length}`}
         {message && <p>{message}</p>}
@@ -72,7 +87,9 @@ export function LessonMenu({ lessons, selectedId, loading, importing, message, e
           {[...errors, pickerError].filter(Boolean).map((error) => <p key={error}>{error}</p>)}
         </div>
       )}
-      <p className="local-note">Importowane lekcje są zapisywane tylko w tej przeglądarce.</p>
+      <p className="local-note">{hasTemporaryImports
+        ? 'Część lekcji jest dostępna tylko do odświeżenia lub zamknięcia strony. Zachowaj kopię zapasową.'
+        : 'Własne lekcje pozostają w tej przeglądarce, jeśli pozwala ona na zapis. Eksport kopii pozwala przenieść je na inny komputer.'}</p>
     </section>
   );
 }
