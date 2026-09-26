@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - name: Pobierz repozytorium
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Zainstaluj Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -33,7 +33,7 @@ jobs:
           Copy-Item -Recurse dane release\dane
 
       - name: Udostępnij gotową wersję
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: fiszki-windows-x86_64
           path: release/
