@@ -19,3 +19,17 @@ Instrukcja dla windowsa:
 
 
 v0.1.0 - pierwsza wersja oprogramowania
+
+## Wersja przeglądarkowa
+
+W katalogu [`web/`](web/README.md) znajduje się wersja React + TypeScript + Vite,
+korzystająca z tych samych materiałów w `dane/`. Oryginalna aplikacja Python pozostaje bez zmian.
+
+```bash
+cd web
+npm ci
+npm run dev
+```
+
+Wymagany jest Node.js 24 lub nowszy. [Instrukcja wersji webowej](web/README.md)
+opisuje import folderów, lokalny zapis w IndexedDB, testy oraz budowanie na hosting statyczny.
