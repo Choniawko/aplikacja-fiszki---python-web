@@ -1,0 +1,17 @@
+# Środowisko Pythona
+.venv/
+
+# PyInstaller
+build/
+dist/
+
+# Cache Pythona
+__pycache__/
+*.pyc
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db
+
+# Gotowe paczki aplikacji
+release/
