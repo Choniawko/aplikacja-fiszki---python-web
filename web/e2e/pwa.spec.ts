@@ -1,3 +1,4 @@
+import { openTools, startClassic, checkUpdates } from './helpers.ts';
 import { test as base, expect, chromium } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { createServer } from 'node:http';
@@ -89,10 +90,10 @@ test('pierwsze pobranie czeka na wszystkie zasoby; ponowne otwarcie offline deko
   });
   expect(decoded).toBe(354);
   await reopened.getByRole('radio').nth(1).check();
-  await reopened.getByRole('button', { name: 'Rozpocznij lekcję' }).click();
+  await startClassic(reopened);
   await expect(reopened.getByTestId('counter')).toHaveText('1 / 220');
   await reopened.getByRole('button', { name: 'Pokaż odpowiedź' }).click();
-  await expect(reopened.getByRole('button', { name: 'Poprawna odpowiedź', exact: true })).toBeEnabled();
+  await expect(reopened.getByRole('button', { name: 'Pamiętam', exact: true })).toBeEnabled();
   expect(await reopened.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -111,7 +112,7 @@ test('utracony element cache jest wykrywany i naprawiany', async ({ page, site }
   await page.evaluate(async (file) => {
     for (const name of await caches.keys()) if (name.startsWith('fiszki-pwa:')) await (await caches.open(name)).delete(new URL(file, location.href));
   }, lastImage);
-  await page.getByRole('button', { name: 'Sprawdź aktualizacje' }).click();
+  await checkUpdates(page);
   await expect(page.getByTestId('offline-state')).not.toHaveText('Gotowe do nauki offline');
   await page.getByRole('button', { name: 'Ponów pobieranie' }).click();
   await ready(page);
@@ -120,19 +121,22 @@ test('utracony element cache jest wykrywany i naprawiany', async ({ page, site }
 test('plik kopii na telefonie i nowa wersja: lekcja trwa do decyzji, importy przeżywają aktualizację', async ({ page, context, site }) => {
   await page.goto(site.url); await ready(page); await importBackup(page);
   const previousScript = await page.locator('script[type=module][src]').getAttribute('src');
-  await page.getByRole('button', { name: 'Rozpocznij lekcję' }).click();
+  await page.getByRole('button', { name: 'Rozpocznij', exact: true }).click();
+  await page.getByRole('button', { name: 'Pokaż odpowiedź' }).click();
+  await page.getByRole('button', { name: 'Pamiętam', exact: true }).click();
+  await expect(page.getByTestId('save-status')).toHaveText('Postępy zapisane lokalnie');
   await page.getByRole('button', { name: 'Pokaż odpowiedź' }).click();
   const updated = await mkdtemp(path.join(tmpdir(), 'fiszki-pwa-update-'));
   try {
     await promisify(execFile)(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--mode', 'pwa', '--outDir', updated, '--emptyOutDir'], { cwd: root, env: { ...process.env, PWA_BUILD_ID: 'test-update-version' } });
     site.directory = updated;
-    await page.getByRole('button', { name: 'Sprawdź aktualizacje' }).click();
+    await checkUpdates(page);
     await expect(page.getByText('Dostępna nowa wersja', { exact: true })).toBeVisible();
     await expect(page.locator('#answer')).toHaveText('Żółć...v2!');
-    await expect(page.getByTestId('counter')).toHaveText('1 / 1');
+    await expect(page.getByTestId('box-2')).toHaveText('Szuflada 21');
     await page.getByRole('button', { name: 'Później', exact: true }).click();
     await expect(page.locator('#answer')).toHaveText('Żółć...v2!');
-    await page.getByRole('button', { name: 'Sprawdź aktualizacje' }).click();
+    await checkUpdates(page);
     await expect(page.getByText('Dostępna nowa wersja', { exact: true })).toBeVisible();
     await Promise.all([page.waitForEvent('load'), page.getByRole('button', { name: 'Przeładuj i zaktualizuj' }).click()]);
     await ready(page);
@@ -141,15 +145,17 @@ test('plik kopii na telefonie i nowa wersja: lekcja trwa do decyzji, importy prz
     await context.setOffline(true); await page.reload(); await ready(page);
     expect(await page.evaluate(async (url) => (await fetch(url!)).ok, previousScript)).toBe(true);
     await page.getByRole('radio', { name: 'Moja kopia z komputera (import)', exact: true }).check();
-    await page.getByRole('button', { name: 'Rozpocznij lekcję' }).click();
-    for (let round = 0; round < 3; round++) {
+    await page.getByRole('button', { name: 'Wznów naukę' }).click();
+    await expect(page.getByTestId('box-2')).toHaveText('Szuflada 21');
+    await expect(page.locator('#answer')).toHaveText('Przypomnij sobie odpowiedź');
+    for (let round = 0; round < 2; round++) {
       await page.getByRole('button', { name: 'Pokaż odpowiedź' }).click();
       await expect(page.locator('#answer')).toHaveText('Żółć...v2!');
-      await page.getByRole('button', { name: round < 2 ? 'Błędna odpowiedź' : 'Poprawna odpowiedź', exact: true }).click();
+      await page.getByRole('button', { name: 'Pamiętam', exact: true }).click();
     }
     await expect(page.getByText('Wszystkie fiszki zaliczone!', { exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Powrót do listy lekcji' }).click();
-    const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Eksportuj kopię lekcji' }).click();
+    await page.getByRole('button', { name: 'Wróć do lekcji' }).click();
+    const download = page.waitForEvent('download'); await openTools(page); await page.getByRole('button', { name: 'Eksportuj kopię lekcji' }).click();
     expect((await download).suggestedFilename()).toMatch(/^fiszki-kopia-.*\.json$/);
   } finally { await rm(updated, { recursive: true, force: true }); }
 });
@@ -168,10 +174,17 @@ test('zapisane PWA uruchamia się offline po zamknięciu i ponownym uruchomieniu
   let context = await chromium.launchPersistentContext(profile, { channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
   try {
     const page = await context.newPage(); await page.goto(site.url); await ready(page); await importBackup(page);
+    await page.getByRole('button', { name: 'Rozpocznij', exact: true }).click();
+    await page.getByRole('button', { name: 'Pokaż odpowiedź' }).click();
+    await page.getByRole('button', { name: 'Pamiętam', exact: true }).click();
+    await expect(page.getByTestId('save-status')).toHaveText('Postępy zapisane lokalnie');
     await context.close();
     context = await chromium.launchPersistentContext(profile, { channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
     await context.setOffline(true);
     const reopened = await context.newPage(); await reopened.goto(site.url); await ready(reopened);
     await expect(reopened.getByRole('radio')).toHaveCount(3);
+    await reopened.getByRole('button', { name: 'Wznów naukę' }).click();
+    await expect(reopened.getByTestId('box-2')).toHaveText('Szuflada 21');
+    await expect(reopened.locator('#answer')).toHaveText('Przypomnij sobie odpowiedź');
   } finally { await context.close(); await rm(profile, { recursive: true, force: true }); }
 });

@@ -1,10 +1,11 @@
+import { contentSignature } from '../domain/progress.ts';
 import { answerFromFilename, compareNames, extension, imageTypes, isImage } from '../domain/lessons.ts';
 import type { Lesson } from '../domain/lessons.ts';
 
 export interface StoredLesson {
   id: string;
   name: string;
-  cards: { id: string; answer: string; blob: Blob }[];
+  cards: { id: string; answer: string; blob: Blob; revision?: string }[];
 }
 
 export function supportsDirectoryPicker(): boolean {
@@ -46,7 +47,7 @@ export async function prepareImport(
       const blob = new Blob([bytes], { type: imageTypes[extension(file.name)] });
       if (!blob.size) throw new Error('Pusty plik.');
       await decode(blob);
-      lesson.cards.push({ id: file.webkitRelativePath, answer: answerFromFilename(file.name), blob });
+      lesson.cards.push({ id: file.webkitRelativePath, answer: answerFromFilename(file.name), blob, revision: contentSignature(new Uint8Array(bytes)) });
     } catch {
       throw new Error(`Nie udało się odczytać grafiki „${file.name}”. Sprawdź plik i spróbuj ponownie. Lekcja nie została zaimportowana.`);
     }
@@ -58,7 +59,7 @@ export function materializeLesson(stored: StoredLesson): Lesson {
   const cards: Lesson['cards'] = [];
   try {
     for (const card of stored.cards) {
-      cards.push({ id: card.id, answer: card.answer, imageUrl: URL.createObjectURL(card.blob) });
+      cards.push({ id: card.id, answer: card.answer, imageUrl: URL.createObjectURL(card.blob), revision: card.revision });
     }
   } catch (error) {
     for (const card of cards) URL.revokeObjectURL(card.imageUrl);
@@ -71,4 +72,8 @@ export function releaseLesson(lesson: Lesson): void {
   if (lesson.source === 'imported') {
     for (const card of lesson.cards) URL.revokeObjectURL(card.imageUrl);
   }
+}
+
+export async function withRevisions(stored: StoredLesson): Promise<StoredLesson> {
+  return { ...stored, cards: await Promise.all(stored.cards.map(async (card) => ({ ...card, revision: contentSignature(new Uint8Array(await card.blob.arrayBuffer())) }))) };
 }

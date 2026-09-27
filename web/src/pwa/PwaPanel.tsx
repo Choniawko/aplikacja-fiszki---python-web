@@ -14,7 +14,7 @@ function askWorker(worker: ServiceWorker, type: 'CHECK_OFFLINE' | 'REPAIR_OFFLIN
   });
 }
 
-export function PwaPanel({ studying }: { studying: boolean }) {
+export function PwaPanel({ studying, beforeUpdate }: { studying: boolean; beforeUpdate?: () => Promise<void> }) {
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState('Pobieranie aplikacji i materiałów do nauki offline…');
   const [error, setError] = useState('');
@@ -120,20 +120,23 @@ export function PwaPanel({ studying }: { studying: boolean }) {
       {error && <div role="alert"><p>{error}</p><button type="button" onClick={() => { void retry.current(); }}>Ponów pobieranie</button></div>}
       {update && !dismissed && <div className="update-notice" role="status">
         <strong>Dostępna nowa wersja</strong>
-        <p>{studying ? 'Przeładowanie zakończy bieżącą naukę. ' : ''}Własne lekcje i kopie zapisane w przeglądarce pozostaną dostępne.</p>
-        <button type="button" onClick={() => {
+        <p>{studying ? 'Po przeładowaniu wybierz „Wznów naukę”. ' : ''}Zapisane własne lekcje i postępy pozostaną dostępne.</p>
+        <button type="button" onClick={async () => {
+          await beforeUpdate?.();
           const waiting = registration.current?.waiting;
           if (waiting) { acceptedUpdate.current = true; waiting.postMessage({ type: 'SKIP_WAITING' }); }
           else { acceptedUpdate.current = true; window.location.reload(); }
         }}>Przeładuj i zaktualizuj</button>
         <button type="button" onClick={() => setDismissed(true)}>Później</button>
       </div>}
+      <details className="pwa-details"><summary>Instalacja i aktualizacje</summary>
       {!standalone && <div className="install-instructions">
         <p><strong>iPhone:</strong> otwórz w Safari → Udostępnij → Do ekranu głównego.</p>
         <p><strong>Android:</strong> w menu przeglądarki wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.</p>
         <p>Przed odłączeniem internetu poczekaj na komunikat „Gotowe do nauki offline”.</p>
       </div>}
       <button type="button" className="check-update" onClick={() => { void check.current(); }}>Sprawdź aktualizacje</button>
+      </details>
     </aside>
   );
 }

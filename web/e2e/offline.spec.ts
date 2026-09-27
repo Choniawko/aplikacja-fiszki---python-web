@@ -1,3 +1,4 @@
+import { openTools, startClassic } from './helpers.ts';
 import { test as base, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { mkdtemp, readFile, writeFile, mkdir, rm } from 'node:fs/promises';
@@ -71,12 +72,13 @@ test('samotny HTML file:// bez sieci: wszystkie grafiki i pełna nauka z kolejny
   });
   expect(count).toBe(354);
   await page.getByRole('radio').nth(1).check();
-  await page.getByRole('button', { name: 'Rozpocznij lekcję' }).click();
+  await startClassic(page);
   await expect(page.getByTestId('counter')).toHaveText('1 / 220');
-  await page.getByRole('button', { name: 'Powrót do listy lekcji' }).click();
-  await page.getByRole('button', { name: 'Rozpocznij lekcję' }).click();
-  const correct = page.getByRole('button', { name: 'Poprawna odpowiedź', exact: true });
-  const wrong = page.getByRole('button', { name: 'Błędna odpowiedź' });
+  await page.getByRole('button', { name: 'Wróć do lekcji' }).click();
+  await page.getByRole('radio').nth(0).check();
+  await startClassic(page);
+  const correct = page.getByRole('button', { name: 'Pamiętam', exact: true });
+  const wrong = page.getByRole('button', { name: 'Nie pamiętam' });
   const missed: string[] = [];
   await expect(correct).toBeDisabled();
   for (let i = 0; i < 134; i++) {
@@ -101,12 +103,13 @@ test('file:// bez IndexedDB: import sesyjny, eksport obrazów i odtworzenie kopi
   await page.addInitScript(() => Object.defineProperty(window, 'indexedDB', { get() { throw new DOMException('denied', 'SecurityError'); } }));
   await page.goto(offlineUrl);
   const chooser = page.waitForEvent('filechooser');
+  await openTools(page);
   await page.getByRole('button', { name: 'Importuj folder lekcji' }).click();
   await (await chooser).setFiles(folder);
   await expect(page.getByRole('status')).toContainText('Dostępne tylko w bieżącej sesji');
   await expect(page.getByRole('status')).not.toContainText('Zapisano');
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Eksportuj kopię lekcji' }).click();
+  await openTools(page); await page.getByRole('button', { name: 'Eksportuj kopię lekcji' }).click();
   const backup = info.outputPath('kopia.json'); await (await download).saveAs(backup);
   const contents = JSON.parse(await readFile(backup, 'utf8'));
   expect(contents.lessons).toHaveLength(1);
@@ -116,25 +119,43 @@ test('file:// bez IndexedDB: import sesyjny, eksport obrazów i odtworzenie kopi
   await page.getByTestId('backup-input').setInputFiles(backup);
   await expect(page.getByRole('status')).toContainText('Wczytano kopię zapasową');
   await expect(page.getByRole('radio')).toHaveCount(3);
-  await page.getByRole('button', { name: 'Rozpocznij lekcję' }).click();
+  await startClassic(page);
   const answers = [await reveal(page)];
-  await page.getByRole('button', { name: 'Poprawna odpowiedź', exact: true }).click();
+  await page.getByRole('button', { name: 'Pamiętam', exact: true }).click();
   answers.push(await reveal(page));
   expect(answers.sort()).toEqual(['Druga odpowiedź', 'Żółć...v2!']);
-  await page.getByRole('button', { name: 'Poprawna odpowiedź', exact: true }).click();
+  await page.getByRole('button', { name: 'Pamiętam', exact: true }).click();
   await expect(page.getByText('Wszystkie fiszki zaliczone!', { exact: true })).toBeVisible();
 });
 
 test('file:// dostępny IndexedDB zapisuje import, a brak miejsca pozostawia lekcję w sesji', async ({ page, offlineUrl, folder }) => {
   await page.goto(offlineUrl);
   let chooser = page.waitForEvent('filechooser');
+  await openTools(page);
   await page.getByRole('button', { name: 'Importuj folder lekcji' }).click(); await (await chooser).setFiles(folder);
   await expect(page.getByRole('status')).toContainText('Zapisano lokalnie');
   await page.reload(); await expect(page.getByRole('radio')).toHaveCount(3);
   await page.evaluate(() => { IDBObjectStore.prototype.put = () => { throw new DOMException('quota', 'QuotaExceededError'); }; });
   chooser = page.waitForEvent('filechooser');
+  await openTools(page);
   await page.getByRole('button', { name: 'Importuj folder lekcji' }).click(); await (await chooser).setFiles(folder);
   await expect(page.getByRole('status')).toContainText('Dostępne tylko w bieżącej sesji');
   await expect(page.getByRole('alert')).toContainText('Brakuje miejsca');
   await expect(page.getByRole('button', { name: 'Eksportuj kopię lekcji' })).toBeEnabled();
+});
+
+
+test('file:// szuflady zapisują postęp i wznawiają z ukrytą odpowiedzią bez sieci', async ({ page, offlineUrl }) => {
+  await page.goto(offlineUrl);
+  await page.getByRole('button', { name: 'Rozpocznij', exact: true }).click();
+  await expect(page.getByTestId('mastered')).toHaveText('Zaliczone 0 z 20');
+  await reveal(page);
+  await page.getByRole('button', { name: 'Pamiętam', exact: true }).click();
+  await expect(page.getByTestId('save-status')).toHaveText('Postępy zapisane lokalnie');
+  const next = await reveal(page);
+  await page.reload();
+  await page.getByRole('button', { name: 'Wznów naukę' }).click();
+  await expect(page.locator('#answer')).toHaveText('Przypomnij sobie odpowiedź');
+  await expect(page.getByTestId('box-2')).toHaveText('Szuflada 21');
+  expect(await reveal(page)).toBe(next);
 });
