@@ -2,7 +2,7 @@ FISZKI — WERSJA PRZENOŚNA OFFLINE
 
 Ta paczka jest przeznaczona do przeglądarki na komputerze.
 Na iPhonie nie otwieraj HTML w podglądzie aplikacji Pliki.
-Wersja na telefon (po publikacji GitHub Pages):
+Wersja na telefon:
 https://choniawko.github.io/aplikacja-fiszki---python-web/
 W Safari: Udostępnij → Do ekranu głównego. Poczekaj na komunikat
 „Gotowe do nauki offline” przed odłączeniem internetu.
@@ -10,26 +10,35 @@ W Safari: Udostępnij → Do ekranu głównego. Poczekaj na komunikat
 1. Rozpakuj cały plik fiszki-offline.zip.
 2. Otwórz fiszki.html dwuklikiem. Jeśli otworzy się edytor tekstu,
    wybierz „Otwórz za pomocą” i przeglądarkę internetową.
-3. Wybierz lekcję, kliknij „Rozpocznij lekcję”, a następnie grafikę.
-4. Czerwone ✗ oznacza błąd, zielone ✓ — poprawną odpowiedź.
-   Błędne karty powtarzają się do zaliczenia wszystkich odpowiedzi.
+3. Wybierz lekcję i partię 10, 20, 30 lub 50 fiszek (domyślnie 20).
+   Kliknij „Rozpocznij”, a potem „Pokaż odpowiedź” lub grafikę.
+4. „Pamiętam” przesuwa kartę do następnej szuflady; trzecia poprawna
+   ocena zalicza kartę. „Nie pamiętam” cofa ją do szuflady 1.
+   Po zaliczeniu partii wybierz „Następna partia” lub „Wróć do lekcji”.
+5. „Tryb klasyczny” pozwala powtarzać błędy z całej lekcji jak wcześniej.
+
+Po każdej ocenie zapisywany jest postęp. Poczekaj na potwierdzenie zapisu.
+Po ponownym otwarciu wybierz „Wznów naukę”; odpowiedź będzie ukryta.
+„Wyzeruj postępy lekcji” w ustawieniach wymaga potwierdzenia i zachowuje
+materiały. Postępy obu trybów są niezależne.
 
 Nie potrzebujesz internetu, instalacji, Node.js, Pythona, terminala
 ani serwera. Wszystkie wbudowane lekcje i obrazy są w fiszki.html.
 
 WŁASNE LEKCJE I KOPIE ZAPASOWE
 
+Rozwiń „Własne lekcje, kopie i ustawienia”.
 „Importuj folder lekcji” pozwala wybrać folder z własnymi obrazami.
 Nazwa folderu to nazwa lekcji; nazwy plików bez końcowego rozszerzenia
 są odpowiedziami. Obrazy umieść bezpośrednio w wybranym folderze.
 Aplikacja nie skanuje folderów obok HTML i nie zmienia samego HTML.
 
 Przeglądarka może zapisać importowane lekcje lokalnie. W trybie file://
-może też odmówić zapisu. Wówczas lekcje działają do zamknięcia lub
+może też odmówić zapisu. Wówczas lekcje i postępy działają do zamknięcia lub
 odświeżenia strony, o czym informuje aplikacja.
 
 Przycisk „Eksportuj kopię lekcji” pobiera jeden plik JSON ze wszystkimi
-własnymi lekcjami, odpowiedziami i grafikami — także tymi dostępnymi
+własnymi lekcjami, odpowiedziami, grafikami i postępami — także dostępnymi
 tylko w bieżącej sesji. Zachowaj ten plik przed zamknięciem strony.
 
 Na innym komputerze otwórz fiszki.html i wybierz „Importuj kopię lekcji”,

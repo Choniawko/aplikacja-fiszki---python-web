@@ -29,7 +29,7 @@ Błąd sieci, brak miejsca lub brak dowolnego zasobu blokuje gotowość. Przycis
 
 ## Aktualizacja PWA
 
-Nowy build pobiera się w tle. Aplikacja pokazuje **Dostępna nowa wersja**, **Później** oraz **Przeładuj i zaktualizuj**. Nie wymusza przeładowania podczas nauki. Przeładowanie wybrane przez użytkownika kończy bieżącą sesję; własne lekcje w IndexedDB pozostają zapisane. Zamknięcie wszystkich starych okien pozwala przeglądarce aktywować gotową nową wersję przy następnym uruchomieniu.
+Nowy build pobiera się w tle. Aplikacja pokazuje **Dostępna nowa wersja**, **Później** oraz **Przeładuj i zaktualizuj**. Nie wymusza przeładowania podczas nauki. Przeładowanie wybrane przez użytkownika czeka na zakończenie zapisu postępów. Po ponownym uruchomieniu wybierz **Wznów naukę**; odpowiedź bieżącej karty będzie ukryta. Własne lekcje pozostają zapisane. Jeżeli zapis się nie powiódł, wyeksportuj kopię przed aktualizacją. Zamknięcie wszystkich starych okien pozwala przeglądarce aktywować gotową nową wersję przy następnym uruchomieniu.
 
 Przycisk **Sprawdź aktualizacje** pozwala sprawdzić wersję ręcznie. Service worker utrzymuje cache aplikacji oddzielnie od IndexedDB i nigdy nie usuwa własnych lekcji. Przechowuje również poprzedni cache, aby ograniczyć problemy kart przeglądarki nadal wyświetlających wcześniejszą wersję.
 
@@ -39,21 +39,43 @@ Przycisk **Sprawdź aktualizacje** pozwala sprawdzić wersję ręcznie. Service 
 
 HTML zawiera JavaScript, CSS, manifest danych lekcji i wszystkie grafiki jako data URL. Nie pobiera manifestu ani modułów przez `fetch`, nie używa workera, zewnętrznych fontów ani bibliotek. Sam `vite-plugin-singlefile` osadza JS/CSS; osobny krok osadza obrazy z `public/generated/`. Kontrola buildu sprawdza wszystkie karty, dokładne odpowiedzi i zgodność bajtów każdego obrazu. Polityka CSP wersji HTML dodatkowo zabrania połączeń (`connect-src 'none'`).
 
-## Nauka
+## Nauka w szufladach
 
-Wybierz lekcję i kliknij **Rozpocznij lekcję**. Lista jest sortowana po nazwach bez uwzględniania wielkości liter; pierwsza pozycja jest zaznaczona domyślnie. Każda nowa sesja tasuje całą lekcję.
+Domyślny tryb to **Nauka w szufladach**, w partiach po **20 fiszek**. Po wybraniu lekcji możesz ustawić 10, 20, 30 lub 50 kart. Partia jest losowana bez powtórzeń spośród niezaliczonych kart. Jeżeli zostało mniej kart, używane są wszystkie pozostałe. Skład i wielkość rozpoczętej partii pozostają stałe przy wznowieniu.
 
-Kliknij grafikę, aby odsłonić dokładną nazwę pliku bez ostatniego rozszerzenia. Czerwone **✗** oznacza błąd, zielone **✓** poprawną odpowiedź. Przed odsłonięciem i po zakończeniu nie można oceniać. Po rundzie powtarzane są wyłącznie jej błędne karty, ponownie potasowane. Rundy trwają aż do zaliczenia wszystkich kart. Podwójne i spóźnione zdarzenia nie pomijają kolejnych fiszek.
+1. Wybierz **Rozpocznij**. Każda karta zaczyna w szufladzie 1.
+2. Przypomnij sobie odpowiedź, potem naciśnij **Pokaż odpowiedź** lub grafikę.
+3. **Pamiętam** przesuwa kartę z szuflady 1 do 2, następnie do 3. Poprawna ocena w szufladzie 3 zalicza kartę.
+4. **Nie pamiętam** zawsze cofa kartę do szuflady 1. Niezaliczone karty wracają na koniec kolejki, a odpowiedź następnej karty jest ukryta.
+5. Po zaliczeniu całej partii wybierz **Następna partia** albo **Wróć do lekcji**. Nowe karty są dobierane dopiero na żądanie. Po ostatniej partii pojawia się ukończenie całej lekcji.
 
-**Powrót do listy lekcji** przerywa sesję. Nauka nie jest zapisywana po odświeżeniu. Klawiatura: Tab / Shift+Tab, strzałki na liście, Enter / Spacja na przyciskach. Grafiki zachowują proporcje i mieszczą się w 500 × 350 px; długie odpowiedzi zawijają się. Interfejs uwzględnia safe area telefonu, ma przyciski o wysokości przynajmniej 44 px i nie blokuje powiększania strony.
+Każda karta wymaga trzech kolejnych poprawnych ocen swoich prezentacji. Błąd zeruje ten ciąg. Ostatnia karta może pojawić się ponownie, ale za każdym razem trzeba osobno odsłonić odpowiedź. To powtórki w ramach nauki, bez terminów na kolejne dni.
+
+Liczniki pokazują rozkład aktywnej partii między szufladami i liczbę zaliczonych kart. Pasek postępu rośnie tylko przy zaliczeniu karty. Krótki komunikat po ocenie wskazuje jej efekt.
+
+## Tryb klasyczny
+
+W polu **Tryb nauki** możesz wybrać **Tryb klasyczny**: cała lekcja jest tasowana i pokazywana w jednej serii. Poprawna odpowiedź zalicza kartę od razu. Kolejne rundy zawierają wyłącznie błędne karty z poprzedniej rundy i trwają aż do zaliczenia wszystkich kart.
+
+## Postępy, wznowienie i reset
+
+Aplikacja zapisuje po każdej ocenie skład partii, kolejkę, szuflady, zaliczone karty i liczniki. Poczekaj na **Postępy zapisane lokalnie** przed zamknięciem przeglądarki. Po odświeżeniu, powrocie do menu lub ponownym uruchomieniu wybierz **Wznów naukę**. Bieżąca odpowiedź jest zawsze ukryta. Postępy szuflad i trybu klasycznego są niezależne.
+
+W sekcji **Własne lekcje, kopie i ustawienia** znajduje się **Wyzeruj postępy lekcji**. Reset wymaga potwierdzenia, obejmuje oba tryby wybranej lekcji i zachowuje materiały. Pozwala też rozpocząć naukę od nowa z inną wielkością partii. Jeśli zapis jest niedostępny, reset działa tylko w bieżącej sesji — aplikacja informuje, że po odświeżeniu może wrócić wcześniejszy zapis.
+
+Przy zmianie materiałów zachowywane są postępy niezmienionych kart. Usunięte karty opuszczają kolejkę, zmienione zaczynają ponownie od szuflady 1, a nowe czekają na następną partię. W trybie klasycznym nowe i zmienione karty trafiają do kolejki pozostałej do nauki. Aplikacja pokazuje komunikat o dostosowaniu postępów. Sama zmiana wersji aplikacji nie resetuje nauki.
+
+Jeżeli przeglądarka odmawia zapisu lub zabraknie miejsca, możesz kontynuować w bieżącej sesji. Komunikat jasno wskazuje brak trwałego zapisu. Wróć do lekcji i wyeksportuj kopię **przed zamknięciem, odświeżeniem lub aktualizacją**. Dane są lokalne, nie synchronizują się między urządzeniami. Przy równoczesnej nauce w kilku kartach przeglądarki obowiązuje ostatni zapis.
+
+Klawiatura: Tab / Shift+Tab, strzałki na liście lekcji, Enter / Spacja na przyciskach. Interfejs ma widoczny fokus, duże przyciski, uwzględnia safe area telefonu i pozwala powiększać stronę. Animacje respektują ograniczenie ruchu w ustawieniach systemu.
 
 ## Własne lekcje, lokalny zapis i kopie
 
-**Importuj folder lekcji** pozwala świadomie wybrać folder. Nazwa folderu staje się nazwą lekcji, nazwy plików — odpowiedziami. Obsługiwane są PNG, JPG, JPEG, BMP, GIF i WebP, także wielkimi literami. Brane są tylko obrazy bezpośrednio w folderze; podfoldery i inne pliki są pomijane. Aplikacja nie skanuje folderów obok HTML.
+W sekcji **Własne lekcje, kopie i ustawienia** przycisk **Importuj folder lekcji** pozwala świadomie wybrać folder. Nazwa folderu staje się nazwą lekcji, nazwy plików — odpowiedziami. Obsługiwane są PNG, JPG, JPEG, BMP, GIF i WebP, także wielkimi literami. Brane są tylko obrazy bezpośrednio w folderze; podfoldery i inne pliki są pomijane. Aplikacja nie skanuje folderów obok HTML.
 
-**Importuj kopię lekcji** pozwala wybrać pojedynczy plik JSON, także na iPhonie przez aplikację Pliki. Nie wymaga obsługi wyboru folderu. **Eksportuj kopię lekcji** pobiera JSON zawierający wszystkie własne lekcje, dokładne odpowiedzi i grafiki, również importy dostępne tylko w bieżącej sesji. Plik można przenieść na inny komputer lub telefon i odtworzyć bez dostępu do oryginalnych folderów. Wbudowane lekcje nie są powielane w kopii. Import o tej samej nazwie zastępuje poprzednią własną lekcję, zachowując pozostałe lekcje oraz materiały wbudowane.
+**Importuj kopię lekcji** pozwala wybrać pojedynczy plik JSON, także na iPhonie przez aplikację Pliki. Nie wymaga obsługi wyboru folderu. **Eksportuj kopię lekcji** pobiera JSON zawierający wszystkie własne lekcje, dokładne odpowiedzi, grafiki oraz postępy obu trybów dla wszystkich lekcji — także wbudowanych. Obejmuje również dane dostępne tylko w bieżącej sesji. Plik można przenieść na inny komputer lub telefon i odtworzyć bez dostępu do oryginalnych folderów. Grafiki wbudowanych lekcji nie są powielane w kopii. Nowy format kopii (wersja 2) zachowuje identyfikatory kart i postępy; import nadal obsługuje starsze kopie (wersja 1), które zawierają same własne lekcje. Kopia zastępuje zawarte w niej postępy dla danej lekcji i trybu, pozostawiając pozostałe zapisy. Import o tej samej nazwie zastępuje poprzednią własną lekcję, zachowując pozostałe lekcje oraz materiały wbudowane.
 
-Przed importem sprawdzane są wszystkie dane i obrazy. Uszkodzona kopia nie zastępuje wcześniejszych danych. Zapis kilku lekcji odbywa się w jednej transakcji IndexedDB (`fiszki-local-lessons`, magazyn `lessons`). Aplikacja wykonuje rzeczywistą próbę zapisu; komunikat **Zapisano lokalnie** pojawia się dopiero po zatwierdzeniu transakcji. Jeśli przeglądarka zabrania zapisu lub brakuje miejsca, import pozostaje dostępny **tylko w bieżącej sesji**. Odpowiedni dopisek jest widoczny na liście; należy wyeksportować kopię przed odświeżeniem lub zamknięciem strony.
+Przed importem sprawdzane są wszystkie dane i obrazy. Uszkodzona kopia nie zastępuje wcześniejszych danych. Zapis lekcji i postępów z kopii odbywa się w jednej transakcji IndexedDB. Baza `fiszki-local-lessons` jest migrowana z wersji 1 do 2 przez dodanie magazynu `progress`; dotychczasowy magazyn `lessons` i jego grafiki pozostają zachowane. Postępy przechowują identyfikatory i sygnatury treści, bez tymczasowych blob URL. Aplikacja wykonuje rzeczywistą próbę zapisu; komunikat **Zapisano lokalnie** pojawia się dopiero po zatwierdzeniu transakcji. Jeśli przeglądarka zabrania zapisu lub brakuje miejsca, import pozostaje dostępny **tylko w bieżącej sesji**. Odpowiedni dopisek jest widoczny na liście; należy wyeksportować kopię przed odświeżeniem lub zamknięciem strony.
 
 Dane nie są wysyłane na serwer. Należą do przeglądarki, profilu i adresu strony; nie synchronizują się automatycznie. `file://` ma zależne od przeglądarki zasady przechowywania, a przeniesienie HTML może odłączyć go od poprzedniej bazy. Tryb prywatny, czyszczenie danych, usunięcie aplikacji lub odzyskiwanie miejsca przez system mogą usunąć importy. Zachowuj kopie JSON.
 
@@ -77,7 +99,20 @@ npm run build:offline
 npm run build:pwa
 npm run verify:offline
 npm run verify:pwa
-npm run preview:pwa
+npm run preview:pwa -- --port 4176 --strictPort
+```
+
+Do lokalnego sprawdzenia tej wersji:
+
+```bash
+# Serwer developerski (bez service workera):
+npm run dev -- --port 5176 --strictPort
+# http://127.0.0.1:5176/
+
+# W drugim terminalu: produkcyjny build PWA i podgląd:
+npm run build:pwa
+npm run preview:pwa -- --port 4176 --strictPort
+# http://127.0.0.1:4176/aplikacja-fiszki---python-web/
 ```
 
 `preview:pwa` służy do sprawdzenia produkcyjnej wersji lokalnie. Otwórz adres podany przez Vite z dopisanym `/aplikacja-fiszki---python-web/`. Zwykły `build` ma względną bazę `./` i działa na statycznym hostingu pod dowolnym podkatalogiem. Build PWA wymaga ustalenia bazy przed budowaniem.
@@ -99,8 +134,8 @@ npm run test:pwa
 
 Na macOS 12 pobieranie obecnych przeglądarek Playwright nie jest obsługiwane. Można użyć zainstalowanego Chrome, poprzedzając każde polecenie zmienną `PLAYWRIGHT_CHANNEL=chrome`.
 
-- `test:e2e`: build statyczny pod `/fiszki/`, pełna nauka i importy; widoki komputera, telefonu i tabletu.
-- `test:offline`: HTML rozpakowany z ZIP w osobnym katalogu, adres `file://`, sieć wyłączona i `fetch` zablokowany. Sprawdzane są wszystkie 354 obrazy, pełna seria i kolejne powtórki, zakończenie nauki, kopie JSON, brak IndexedDB oraz brak miejsca.
-- `test:pwa`: produkcyjny build pod rzeczywistą ścieżką repozytorium, bez serwera Vite dev. Obejmuje pełny precache, błąd i ponowienie pobierania, naprawę cache, odczyt wszystkich grafik offline, ponowne uruchomienie przeglądarki z tym samym profilem, plik kopii oraz aktualizację z drugiego produkcyjnego buildu bez utraty importów.
+- `test:e2e`: build statyczny pod `/fiszki/`, szuflady, partie, wznawianie, reset, kopie postępów, pełna nauka klasyczna i importy; widoki komputera, telefonu i tabletu.
+- `test:offline`: HTML rozpakowany z ZIP w osobnym katalogu, adres `file://`, sieć wyłączona i `fetch` zablokowany. Sprawdzane są wszystkie 354 obrazy, pełna seria i kolejne powtórki, zakończenie nauki, kopie JSON, brak IndexedDB, brak miejsca oraz wznowienie szuflad.
+- `test:pwa`: produkcyjny build pod rzeczywistą ścieżką repozytorium, bez serwera Vite dev. Obejmuje pełny precache, błąd i ponowienie pobierania, naprawę cache, odczyt wszystkich grafik offline, ponowne uruchomienie przeglądarki z tym samym profilem, plik kopii oraz aktualizację z drugiego produkcyjnego buildu bez utraty importów i postępów.
 
-Zrzuty i ślady trafiają do `test-results/`, `test-results-offline/` oraz `test-results-pwa/`. Wyniki rzeczywiście wykonanych kontroli i ograniczenia zapisano w [raporcie weryfikacji](docs/WERYFIKACJA.md). Fizyczny iPhone i Android wymagają osobnego sprawdzenia według [checklisty mobilnej](docs/TESTY-MOBILNE.md).
+Zrzuty i ślady trafiają do `test-results/`, `test-results-offline/` oraz `test-results-pwa/`. Wyniki rzeczywiście wykonanych kontroli i ograniczenia zapisano w [raporcie weryfikacji](docs/WERYFIKACJA.md). [Instrukcja lokalnego sprawdzenia szuflad](docs/SZUFLADY.md) zawiera adresy i scenariusze ręczne. Fizyczny iPhone i Android wymagają osobnego sprawdzenia według [checklisty mobilnej](docs/TESTY-MOBILNE.md).

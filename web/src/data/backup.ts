@@ -1,3 +1,5 @@
+import { isProgress, contentSignature } from '../domain/progress.ts';
+import type { Progress } from '../domain/progress.ts';
 import { compareNames } from '../domain/lessons.ts';
 import { verifyImage } from './import-lessons.ts';
 import type { StoredLesson } from './import-lessons.ts';
@@ -5,16 +7,17 @@ import { blobToDataUrl, dataUrlToBlob } from './image-data.ts';
 
 interface Backup {
   format: 'fiszki-backup';
-  version: 1;
-  lessons: { name: string; cards: { answer: string; image: string }[] }[];
+  version: 2;
+  progress: Progress[];
+  lessons: { name: string; cards: { id: string; answer: string; image: string }[] }[];
 }
 
-export async function createBackup(lessons: readonly StoredLesson[]): Promise<string> {
-  if (!lessons.length) throw new Error('Najpierw zaimportuj własną lekcję.');
-  const backup: Backup = { format: 'fiszki-backup', version: 1, lessons: [] };
+export async function createBackup(lessons: readonly StoredLesson[], progress: readonly Progress[] = []): Promise<string> {
+  if (!lessons.length && !progress.length) throw new Error('Najpierw zaimportuj własną lekcję.');
+  const backup: Backup = { format: 'fiszki-backup', version: 2, lessons: [], progress: [...progress] };
   for (const lesson of [...lessons].sort((a, b) => compareNames(a.name, b.name))) {
     const cards: Backup['lessons'][number]['cards'] = [];
-    for (const card of lesson.cards) cards.push({ answer: card.answer, image: await blobToDataUrl(card.blob) });
+    for (const card of lesson.cards) cards.push({ id: card.id, answer: card.answer, image: await blobToDataUrl(card.blob) });
     backup.lessons.push({ name: lesson.name, cards });
   }
   return JSON.stringify(backup, null, 2);
@@ -24,13 +27,13 @@ function object(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-export async function parseBackup(
+export async function parseBackupData(
   text: string,
   decode: (blob: Blob) => Promise<void> = verifyImage,
-): Promise<StoredLesson[]> {
+): Promise<{ lessons: StoredLesson[]; progress: Progress[] }> {
   let data: unknown;
   try { data = JSON.parse(text); } catch { throw new Error('Nie udało się odczytać kopii zapasowej. Wybierz plik JSON wyeksportowany z Fiszek.'); }
-  if (!object(data) || data.format !== 'fiszki-backup' || data.version !== 1 || !Array.isArray(data.lessons) || !data.lessons.length) {
+  if (!object(data) || data.format !== 'fiszki-backup' || (data.version !== 1 && data.version !== 2) || !Array.isArray(data.lessons)) {
     throw new Error('Nieobsługiwany format lub wersja kopii zapasowej.');
   }
   const lessons: StoredLesson[] = [];
@@ -42,17 +45,29 @@ export async function parseBackup(
     }
     names.add(item.name);
     const lesson: StoredLesson = { id: `imported:${item.name}`, name: item.name, cards: [] };
+    const cardIds = new Set<string>();
     for (const [index, card] of item.cards.entries()) {
       if (!object(card) || typeof card.answer !== 'string' || typeof card.image !== 'string') {
         throw new Error('Kopia zapasowa zawiera nieprawidłową fiszkę.');
       }
       const blob = dataUrlToBlob(card.image);
       try { await decode(blob); } catch { throw new Error(`Kopia zapasowa zawiera uszkodzoną grafikę w lekcji „${item.name}”.`); }
-      lesson.cards.push({ id: `backup:${index}`, answer: card.answer, blob });
+      const id = data.version === 1 ? `backup:${index}` : card.id;
+      if (typeof id !== 'string' || !id || cardIds.has(id)) throw new Error('Nieprawidłowe lub powtórzone identyfikatory fiszek.');
+      cardIds.add(id);
+      lesson.cards.push({ id, answer: card.answer, blob, revision: contentSignature(new Uint8Array(await blob.arrayBuffer())) });
     }
     lessons.push(lesson);
   }
-  return lessons;
+  const progress: unknown = data.version === 1 ? [] : data.progress;
+  if (!Array.isArray(progress) || !progress.every(isProgress) || new Set(progress.map((p) => p.key)).size !== progress.length) {
+    throw new Error('Kopia zawiera nieprawidłowe postępy nauki.');
+  }
+  if (!lessons.length && !progress.length) throw new Error('Kopia nie zawiera lekcji ani postępów.');
+  for (const record of progress) {
+    if (record.lessonId.startsWith('imported:') && !lessons.some((lesson) => lesson.id === record.lessonId)) throw new Error('Brak własnej lekcji dla zapisanych postępów.');
+  }
+  return { lessons, progress };
 }
 
 export function downloadBackup(contents: string): void {
@@ -64,4 +79,9 @@ export function downloadBackup(contents: string): void {
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Kept for callers importing older lesson-only archives.
+export async function parseBackup(text: string, decode: (blob: Blob) => Promise<void> = verifyImage): Promise<StoredLesson[]> {
+  return (await parseBackupData(text, decode)).lessons;
 }

@@ -2,6 +2,7 @@ export interface Card {
   id: string;
   answer: string;
   imageUrl: string;
+  revision?: string;
 }
 
 export interface Lesson {

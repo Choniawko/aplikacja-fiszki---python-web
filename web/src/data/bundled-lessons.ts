@@ -13,7 +13,7 @@ export async function loadBundledLessons(): Promise<{ lessons: Lesson[]; dataDir
     }
     if (!manifest || !Array.isArray(manifest.lessons)) throw new Error('Nieprawidłowy manifest.');
     const lessons: Lesson[] = manifest.lessons.map((lesson: {
-      id: string; name: string; cards: { id: string; answer: string; imagePath: string }[];
+      id: string; name: string; cards: { id: string; answer: string; imagePath: string; revision?: string }[];
     }) => ({
       id: lesson.id,
       name: lesson.name,
@@ -21,6 +21,7 @@ export async function loadBundledLessons(): Promise<{ lessons: Lesson[]; dataDir
       cards: lesson.cards.map((card) => ({
         id: card.id,
         answer: card.answer,
+        revision: card.revision,
         imageUrl: embedded ? card.imagePath : `${import.meta.env.BASE_URL}${card.imagePath}`,
       })),
     }));

@@ -1,5 +1,6 @@
+import { contentSignature } from '../src/domain/progress.ts';
 import { createHash } from 'node:crypto';
-import { copyFile, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { answerFromFilename, compareNames, extension, isImage } from '../src/domain/lessons.ts';
@@ -9,7 +10,7 @@ export interface Manifest {
   lessons: {
     id: string;
     name: string;
-    cards: { id: string; answer: string; imagePath: string }[];
+    cards: { id: string; answer: string; imagePath: string; revision?: string }[];
   }[];
 }
 
@@ -38,6 +39,7 @@ export async function generateLessons(dataDir: string, outputDir: string): Promi
       lesson.cards.push({
         id: `bundled:${relativePath}`,
         answer: answerFromFilename(file.name),
+        revision: contentSignature(await readFile(path.join(dataDir, directory.name, file.name))),
         imagePath: `generated/images/${filename}`,
       });
     }

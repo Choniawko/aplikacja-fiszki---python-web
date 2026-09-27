@@ -10,7 +10,7 @@ const lesson: Lesson = {
   cards: ['A', 'B', 'C'].map((id) => ({ id, answer: id, imageUrl: `${id}.png` })),
 };
 function start(source = lesson, id = 'session'): Session {
-  return sessionReducer(null, { type: 'start', lesson: source, sessionId: id }, keepOrder)!;
+  return sessionReducer(null, { type: 'start', mode: 'classic', lesson: source, sessionId: id }, keepOrder)!;
 }
 function grade(state: Session, correct: boolean): Session {
   const token = cardToken(state);
