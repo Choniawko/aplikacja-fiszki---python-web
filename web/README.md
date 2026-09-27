@@ -1,5 +1,7 @@
 # Fiszki — komputer, telefon i tryb offline
 
+**[Otwórz aplikację Fiszki](https://choniawko.github.io/aplikacja-fiszki---python-web/)** — działa w przeglądarce na komputerze, iPhonie i Androidzie.
+
 Aplikacja React + TypeScript + Vite zachowuje logikę i materiały oryginalnego `../fiszki.py`. Dwie wbudowane lekcje to **Symbole elektryczne popularne — 134 karty** i **Symbole elektryczne wszystkie — 220 kart**. Python i wszystkie 354 grafiki pozostają w repozytorium.
 
 ## Wybór wersji
@@ -14,21 +16,6 @@ Aplikacja React + TypeScript + Vite zachowuje logikę i materiały oryginalnego 
 | Aplikacja PWA | `npm run build:pwa` → `dist-pwa/` |
 
 **Na iPhonie podgląd HTML w aplikacji Pliki nie jest sposobem uruchamiania tej aplikacji.** Otwórz wersję HTTPS w Safari i dodaj ją do ekranu głównego. Wersja single-file pozostaje przeznaczona do przeglądarki na komputerze.
-
-## Publikacja na Twoim GitHub Pages
-
-Repozytorium docelowe: **Choniawko/aplikacja-fiszki---python-web**. Workflow nie tworzy PR-a ani wydania w repozytorium autora oryginału.
-
-1. Otwórz [ustawienia Pages swojego repozytorium](https://github.com/Choniawko/aplikacja-fiszki---python-web/settings/pages).
-2. Ustaw **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. Jeśli w forku Actions są wyłączone, otwórz zakładkę **Actions** i włącz uruchamianie workflow.
-4. Wybierz **Actions → GitHub Pages (Fiszki PWA) → Run workflow**.
-5. Wskaż gałąź **main**, pozostaw zaznaczone **Publikuj sprawdzoną aplikację na GitHub Pages** i uruchom workflow.
-6. Poczekaj na zielony wynik zadań **build** oraz **deploy**. Docelowy adres to **https://choniawko.github.io/aplikacja-fiszki---python-web/**. Samo istnienie kodu w repozytorium nie oznacza, że Pages zostało już opublikowane.
-
-Kolejne wdrożenia wykonuj tym samym przyciskiem **Run workflow** na `main`. Push na `main` uruchamia weryfikację i przygotowanie artefaktu; publikacja następuje przy ręcznym uruchomieniu workflow. Nie trzeba tworzyć GitHub Release. Workflow używa `contents: read`, a zadanie publikacji dodatkowo `pages: write` oraz `id-token: write`, środowiska `github-pages` i oficjalnych akcji Pages.
-
-Vite, manifest (`id`, `start_url`, `scope`), rejestracja workera, ikony i grafiki korzystają z tego samego prefiksu **`/aplikacja-fiszki---python-web/`**. W Actions prefiks pochodzi z nazwy repozytorium. Dla innego hostingu można ustawić `PWA_BASE_PATH=/inna-sciezka/` podczas budowania. Stabilny identyfikator aplikacji nie zmienia się pomiędzy wersjami. Publikuj cały `dist-pwa/`, bez dołączania plików z `dist-offline/`.
 
 ## Instalacja na telefonie
 
@@ -94,6 +81,8 @@ npm run preview:pwa
 ```
 
 `preview:pwa` służy do sprawdzenia produkcyjnej wersji lokalnie. Otwórz adres podany przez Vite z dopisanym `/aplikacja-fiszki---python-web/`. Zwykły `build` ma względną bazę `./` i działa na statycznym hostingu pod dowolnym podkatalogiem. Build PWA wymaga ustalenia bazy przed budowaniem.
+
+Vite, manifest (`id`, `start_url`, `scope`), rejestracja workera, ikony i grafiki korzystają z tego samego prefiksu **`/aplikacja-fiszki---python-web/`**. Dla innego hostingu można ustawić `PWA_BASE_PATH=/inna-sciezka/` podczas budowania. Stabilny identyfikator aplikacji nie zmienia się pomiędzy wersjami. Publikuj cały `dist-pwa/`, bez dołączania plików z `dist-offline/`.
 
 Dodanie folderu do `../dane/` nie wymaga edycji kodu. `dev` i wszystkie buildy generują manifest oraz kopie grafik. Po zmianie materiałów uruchom ponownie serwer albo `npm run generate:lessons` i odśwież stronę. Generowane `public/generated/`, `dist/`, `dist-offline/` i `dist-pwa/` nie są plikami źródłowymi. Gotowy ZIP jest przechowywany w repozytorium; po zmianie kodu lub materiałów zaktualizuj go przez `build:offline`.
 
